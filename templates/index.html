@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Puzzle</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Time Puzzle</h1>
+            <p>Guess the secret historical event. We'll tell you if it happened before or after your guess.</p>
+        </header>
+
+        <div class="game-box">
+            <div class="input-group">
+                <input type="text" id="event-input" list="events-list" placeholder="Search for an event...">
+                <datalist id="events-list">
+                    {% for event in events %}
+                    <option value="{{ event }}">
+                    {% endfor %}
+                </datalist>
+                <button onclick="makeGuess()" id="guess-btn">Guess</button>
+            </div>
+
+            <div id="feedback-container"></div>
+            
+            <div class="stats">
+                Attempts: <span id="attempt-count">0</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function makeGuess() {
+            const input = document.getElementById('event-input');
+            const guess = input.value;
+            if (!guess) return;
+
+            const response = await fetch('/guess', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ guess: guess })
+            });
+
+            const data = await response.json();
+            const container = document.getElementById('feedback-container');
+            const attemptsUI = document.getElementById('attempt-count');
+
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+
+            attemptsUI.innerText = data.attempts;
+            
+            const item = document.createElement('div');
+            item.className = `feedback-item ${data.result}`;
+            
+            if (data.result === 'correct') {
+                item.innerHTML = `<strong>${data.message}</strong> (${data.display_year})`;
+                document.getElementById('guess-btn').disabled = true;
+                input.disabled = true;
+            } else {
+                item.innerHTML = `<span class="dir">${data.direction}</span> ${data.guess_name} (${data.guess_year})`;
+            }
+
+            container.prepend(item);
+            input.value = '';
+        }
+
+        // Allow Enter key to submit
+        document.getElementById("event-input").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") makeGuess();
+        });
+    </script>
+</body>
+</html>
