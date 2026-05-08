@@ -7,28 +7,39 @@ app.secret_key = "history_secret_key" # Required for session storage
 
 # Load the dataset globally
 try:
-    df = pd.read_csv('Historical Events 2.csv', encoding='latin1')
-    # Clean up column names just in case
+    df = pd.read_csv('Historical Events 2.xlsx - Sheet1.csv', encoding='latin1')
     df.columns = df.columns.str.strip()
 except Exception as e:
     print(f"Error loading CSV: {e}")
 
 @app.route('/')
 def index():
-    # Reset game state on refresh or new visit
+    # Pick a new target and store its details in the session
     target_row = df.sample(n=1).iloc[0]
     session['target_event'] = target_row['Event']
     session['target_year'] = int(target_row['Year'])
+    session['target_region'] = target_row['Region']
+    session['target_category'] = target_row['Category']
     session['attempts'] = 0
     return render_template('index.html', events=df['Event'].tolist())
 
 @app.route('/guess', methods=['POST'])
 def guess():
     user_guess = request.json.get('guess', '').strip()
+    
+    # --- NEW: Check for hint command ---
+    if user_guess.lower() == 'hint':
+        return jsonify({
+            "result": "hint",
+            "region": session.get('target_region'),
+            "category": session.get('target_category'),
+            "attempts": session['attempts'] # Keep attempts the same
+        })
+
     match = df[df['Event'].str.lower() == user_guess.lower()]
     
     if match.empty:
-        return jsonify({"error": "Event not found in database."}), 400
+        return jsonify({"error": "Event not found in database. Check spelling or use the dropdown."}), 400
 
     session['attempts'] += 1
     guess_row = match.iloc[0]

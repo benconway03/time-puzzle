@@ -16,7 +16,7 @@
 
         <div class="game-box">
             <div class="input-group">
-                <input type="text" id="event-input" list="events-list" placeholder="Search for an event...">
+                <input type="text" id="event-input" list="events-list" placeholder="Search event or type 'hint'...">
                 <datalist id="events-list">
                     {% for event in events %}
                     <option value="{{ event }}">
@@ -59,7 +59,10 @@
             const item = document.createElement('div');
             item.className = `feedback-item ${data.result}`;
             
-            if (data.result === 'correct') {
+            if (data.result === 'hint') {
+                item.className = 'feedback-item hint-box';
+                item.innerHTML = `💡 <strong>HINT:</strong> The secret event took place in <strong>${data.region}</strong> and is categorized under <strong>${data.category}</strong>.`;
+            } else if (data.result === 'correct') {
                 item.innerHTML = `<strong>${data.message}</strong> (${data.display_year})`;
                 document.getElementById('guess-btn').disabled = true;
                 input.disabled = true;

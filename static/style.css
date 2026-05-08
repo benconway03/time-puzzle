@@ -97,3 +97,9 @@ button:hover { opacity: 0.9; }
     from { opacity: 0; transform: translateY(-10px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+.hint-box { 
+    background: #fef08a; 
+    border-left: 5px solid #eab308; 
+    color: #854d0e; 
+}
